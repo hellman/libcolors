@@ -37,19 +37,17 @@ def invmod(a, n):
         return x
 
 
-def prime_has_sqrt(a, p):
-    """
-    Check if @a has modular square root, @p must be prime.
-    """
-    return (jacobi(a, p) == 1)
-
-
 def jacobi(a, n):
     """
-    Return Jacobi symbol (@a/@n). Not tested.
+    Return Jacobi symbol (@a/@n).
     """
     b = a
     e = 0
+    
+    #--- experimental ---
+    while not (n & 1):
+        n >>= 1
+    #---
 
     if a == 0:
         return 0
@@ -83,6 +81,25 @@ def jacobi(a, n):
     return s * jacobi(n1, a1)
 
 
+def prime_has_sqrt(a, p):
+    """
+    Check if @a has modular square root, @p must be prime.
+    """
+    return (jacobi(a, p) == 1)
+
+
+def has_sqrt(a, factors):
+    """
+    Check if @a has modular square root,
+    product of @factors is modulus.
+    WARNING: There's a problem if any of the primes has power > 1
+    """
+    for p in factors:
+        if jacobi(a, p) == -1:
+            return False
+    return True
+
+
 def prime_sqrtmod(a, p):
     """
     Return modular square root. Modulus must be prime.
@@ -91,7 +108,7 @@ def prime_sqrtmod(a, p):
     t = p - 1
 
     if a in [0, 1]:
-        return a
+        return [a]
 
     if prime_has_sqrt(a, p) == False:
         raise ValueError("No square root for " + str(a) +
@@ -119,10 +136,44 @@ def prime_sqrtmod(a, p):
             r = r * c % p
         c = c * c % p
 
-    return r
+    if r:
+        return [r, -r % p]
+    return [0]
 
 
-def solve_crt(modules, remainders):
+def sqrtmod(a, factors):
+    """
+    x ^ 2 = a (mod *factors).
+    Return square root by product of @factors as modulus.
+    (Yeah, needs factorization).
+    WARNING: There's a problem if any of the primes has power > 1
+    """
+    n = reduce(operator.mul, factors)
+
+    powers = {}
+    for p in factors:
+        powers[p] = powers.get(p, 0) + 1
+
+    factors = []
+    for p in powers:
+        factors.append(p ** powers[p])
+    print "FACTORS", factors
+    ss = map(lambda p: prime_sqrtmod(a % p, p), factors)
+    roots = set()
+    masks = [2 ** i for i in xrange(len(factors))]
+    for sign_acc in xrange(0, 2 ** len(factors)):
+        signs = [-1 if sign_acc & m else 1 for m in masks]
+        rems = [signs[i] * ss[i] for i in xrange(len(ss))]
+        #print rems
+        #print factors, "\n"
+        root = solve_crt(rems, factors)
+        roots.add(root % n)
+    print "ROOTS", roots
+    print
+    return list(roots)
+
+
+def solve_crt(remainders, modules):
     """
     Solve Chinese Remainder Theoreme.
     @modules and @remainders are lists.
@@ -135,7 +186,7 @@ def solve_crt(modules, remainders):
         raise ValueError("Empty lists are given")
 
     if len(modules) == 1:
-        return modules[0]
+        return remainders[0]
 
     x = 0
     N = reduce(operator.mul, modules)

@@ -200,9 +200,9 @@ class modulus_math(unittest.TestCase):
             for i in range(0, module):
                 if not libnum.prime_has_sqrt(i, module):
                     continue
-                s = libnum.prime_sqrtmod(i, module)
+                s = libnum.prime_sqrtmod(i, module)[0]
                 self.assertEqual(s * s % module, i)
-        self.assertTrue(libnum.prime_sqrtmod(3, 11) in [5, 6])
+        self.assertTrue(sorted(libnum.prime_sqrtmod(3, 11)) == [5, 6])
 
     def test_crt(self):
         for module in [2, 3, 5, 7, 1993]:
@@ -215,9 +215,9 @@ class modulus_math(unittest.TestCase):
             for m in modules:
                 rems.append(a % m)
                 a += 31337
-            a = libnum.solve_crt(modules, rems)
+            a = libnum.solve_crt(rems, modules)
             for i in xrange(len(modules)):
-                self.assertEqual(a % modules[i], rems[i])
+                self.assertEqual(rems[i], a % modules[i])
         self.assertRaises(TypeError, libnum.solve_crt, [1, 2, 3], [1, 2])
         self.assertRaises(ValueError, libnum.solve_crt, [], []);
 
