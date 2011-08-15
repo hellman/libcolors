@@ -49,7 +49,7 @@ def color(color=None, bgcolor=None, attrs=None):
         for attr in attrs.lower().split():
             attr = attr.strip(",+|")
             if attr not in BASH_ATTRIBUTES:
-                continue
+                raise ValueError("Unknown color attribute: " + attr)
             ret += ";" + BASH_ATTRIBUTES[attr]
 
     if color in BASH_COLORS:
