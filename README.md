@@ -10,7 +10,7 @@ Usage
 
 <pre>
 from libcolors import color
-s1 = color("red", "black", "bold underline")
+s1 = color("red &black bold underline")
 s2 = color()  # Restore default color
 print s1 + "Red on black, bold and underlined" + s2
 </pre>

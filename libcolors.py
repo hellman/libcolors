@@ -17,13 +17,13 @@ BASH_BGCOLORS = {"black": "40", "red": "41", "green": "42", "yellow": "43",
 
 
 def _main():
-    header = color("white", "black", "dark")
+    header = color("white &black")
     print
 
     print header + "       " + "Colors and backgrounds:      " + color()
     for c in _keys_sorted_by_values(BASH_COLORS):
         c1 = color(c)
-        c2 = color("white" if c != "white" else "black", bgcolor=c)
+        c2 = color(("white" if c != "white" else "black") + " &" + c)
         print c.ljust(9),
         print c1 + "colored text" + color() + "   ",
         print c2 + "background" + color()
@@ -31,8 +31,8 @@ def _main():
 
     print header + "            " + "Attributes:             " + color()
     for c in _keys_sorted_by_values(BASH_ATTRIBUTES):
-        c1 = color("red", attrs=c)
-        c2 = color("white", attrs=c)
+        c1 = color("red " + c)
+        c2 = color("white " + c)
         print c.ljust(12),
         print c1 + "red text" + color() + "    ",
         print c2 + "white text" + color()
@@ -40,24 +40,20 @@ def _main():
     return
 
 
-def color(color=None, bgcolor=None, attrs=None):
+def color(params=""):
     if not is_bash():
         return ""
 
     ret = "\x1b[0"
-    if attrs:
-        for attr in attrs.lower().split():
-            attr = attr.strip(",+|")
-            if attr not in BASH_ATTRIBUTES:
-                raise ValueError("Unknown color attribute: " + attr)
-            ret += ";" + BASH_ATTRIBUTES[attr]
-
-    if color in BASH_COLORS:
-        ret += ";" + BASH_COLORS[color]
-
-    if bgcolor in BASH_BGCOLORS:
-        ret += ";" + BASH_BGCOLORS[bgcolor]
-
+    for param in params.lower().split():
+        if param in BASH_ATTRIBUTES:
+            ret += ";" + BASH_ATTRIBUTES[param]
+        elif param in BASH_COLORS:
+            ret += ";" + BASH_COLORS[param]
+        elif param[0] == "&" and param[1:] in BASH_BGCOLORS:
+            ret += ";" + BASH_BGCOLORS[param[1:]]
+        else:
+            raise ValueError("Unknown param: " + param)
     return ret + "m"
 
 
